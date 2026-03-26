@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="auth-layout auth-layout-modern">
+  <article class="card auth-card auth-card-modern">
+    <div class="eyebrow-row">
+      <p class="eyebrow">Secure sign in</p>
+      {% if tls_enabled %}
+      <span class="glass-chip glass-chip-success">HTTPS active</span>
+      {% else %}
+      <span class="glass-chip glass-chip-warning">HTTP only</span>
+      {% endif %}
+    </div>
+
+    <h1>Open your private LAN vault.</h1>
+    <p class="hero-copy muted">Access this share from any device on the same Wi‑Fi by opening <strong>{{ lan_url }}</strong>.</p>
+
+    <div class="metric-grid auth-metric-grid">
+      <div class="metric-card">
+        <span class="metric-label">Scope</span>
+        <strong>Local only</strong>
+        <span class="metric-detail">Restricted to {{ allowed_subnets | length }} detected subnet{{ '' if allowed_subnets | length == 1 else 's' }}</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Storage</span>
+        <strong>Encrypted</strong>
+        <span class="metric-detail">AES-GCM at rest</span>
+      </div>
+    </div>
+
+    {% if user_count == 0 %}
+    <div class="callout warning">
+      <strong>No admin account found.</strong>
+      <p>Run <code>python run.py create-admin --username admin</code> before signing in, or use the packaged EXE and it will prompt you on first launch.</p>
+    </div>
+    {% endif %}
+
+    {% if tls_enabled %}
+    <div class="callout info">
+      <strong>HTTPS is enabled for this share.</strong>
+      <p>
+        This page should load over <strong>{{ lan_url }}</strong>.
+        {% if tls_ca_download_url %}
+        If another device still warns about the certificate, install the local CA once from
+        <a class="inline-link" href="{{ tls_ca_download_url }}">{{ tls_ca_download_url }}</a>.
+        {% endif %}
+      </p>
+    </div>
+    {% endif %}
+
+    <form method="post" action="/login" class="stack-form login-form-modern">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+      <label>
+        <span>Username</span>
+        <input type="text" name="username" autocomplete="username" required />
+      </label>
+      <label>
+        <span>Password</span>
+        <input type="password" name="password" autocomplete="current-password" required />
+      </label>
+      <button type="submit" class="primary-button">Enter dashboard</button>
+    </form>
+  </article>
+
+  <article class="card side-card side-card-modern">
+    <div class="brand-showcase">
+      <img
+        class="showcase-logo"
+        src="{{ url_for('static', path='/logo-mark.svg') }}?v={{ static_version }}"
+        alt=""
+        width="84"
+        height="84"
+      />
+      <div>
+        <p class="eyebrow">Security defaults</p>
+        <h2>What this instance protects by default</h2>
+      </div>
+    </div>
+
+    <div class="feature-stack compact-feature-stack">
+      <div class="feature-item">
+        <strong>Restricted to local subnets</strong>
+        <p class="muted small">{{ allowed_subnets | join(', ') }}</p>
+      </div>
+      <div class="feature-item">
+        <strong>Hashed admin credentials</strong>
+        <p class="muted small">Passwords are stored with scrypt, not in plain text.</p>
+      </div>
+      <div class="feature-item">
+        <strong>Short-lived share links</strong>
+        <p class="muted small">Links expire automatically after {{ share_token_ttl_minutes }} minutes.</p>
+      </div>
+      <div class="feature-item">
+        <strong>Live updates</strong>
+        <p class="muted small">Open dashboards stay in sync over WebSockets.</p>
+      </div>
+    </div>
+  </article>
+</section>
+{% endblock %}

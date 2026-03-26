@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ app_name }}</title>
+    <meta name="theme-color" content="#ff7300" />
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', path='/favicon.svg') }}?v={{ static_version }}" />
+    <link rel="icon" type="image/png" href="{{ url_for('static', path='/favicon.png') }}?v={{ static_version }}" sizes="256x256" />
+    <link rel="apple-touch-icon" href="{{ url_for('static', path='/favicon.png') }}?v={{ static_version }}" />
+    <link rel="shortcut icon" href="/favicon.ico?v={{ static_version }}" />
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}?v={{ static_version }}" />
+  </head>
+  <body>
+    <div class="page-glow page-glow-a"></div>
+    <div class="page-glow page-glow-b"></div>
+    <div class="app-shell">
+      <header class="topbar card topbar-card">
+        <div class="brand-block">
+          <img
+            class="brand-logo"
+            src="{{ url_for('static', path='/logo-mark.svg') }}?v={{ static_version }}"
+            alt="{{ app_name }} logo"
+            width="52"
+            height="52"
+          />
+          <div class="brand-meta">
+            <div class="brand-row">
+              <a class="brand" href="/">{{ app_name }}</a>
+              {% if tls_enabled %}
+              <span class="status-chip status-chip-success">HTTPS</span>
+              {% else %}
+              <span class="status-chip status-chip-warning">HTTP</span>
+              {% endif %}
+            </div>
+            <p class="subtle">Secure local-network file sharing with encrypted storage and live LAN updates over {{ 'HTTPS' if tls_enabled else 'HTTP' }}.</p>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          {% if tls_enabled and tls_ca_download_url %}
+          <a class="ghost-button compact-button" href="{{ tls_ca_download_url }}">Download LAN cert</a>
+          {% endif %}
+          {% if current_user %}
+          <form method="post" action="/logout">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+            <button class="ghost-button compact-button" type="submit">Sign out</button>
+          </form>
+          {% endif %}
+        </div>
+      </header>
+
+      {% if flash %}
+      <div class="flash flash-{{ flash.kind }}">{{ flash.text }}</div>
+      {% endif %}
+
+      <main>
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+    <script src="{{ url_for('static', path='/app.js') }}?v={{ static_version }}" defer></script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+services:
+  octanedrop:
+    build: .
+    ports:
+      - "8765:8765"
+    environment:
+      FILESHARE_HOST: 0.0.0.0
+      FILESHARE_PORT: 8765
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

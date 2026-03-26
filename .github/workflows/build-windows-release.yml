@@ -1,0 +1,63 @@
+name: build-windows-exe
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-build.txt
+
+      - name: Build Windows EXE
+        shell: pwsh
+        run: |
+          python -m PyInstaller --noconfirm --clean orange_drop_lan.spec
+
+      - name: Generate SHA256 checksum
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash dist/OctaneDropLAN.exe -Algorithm SHA256).Hash.ToLower()
+          Set-Content -Path dist/OctaneDropLAN.exe.sha256 -Value "$hash  OctaneDropLAN.exe" -NoNewline
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OctaneDropLAN-windows
+          path: |
+            dist/OctaneDropLAN.exe
+            dist/OctaneDropLAN.exe.sha256
+
+      - name: Publish GitHub Release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $exe = "dist/OctaneDropLAN.exe"
+          $sha = "dist/OctaneDropLAN.exe.sha256"
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag $exe $sha --clobber
+          } else {
+            gh release create $tag $exe $sha --title "OctaneDrop LAN $tag" --generate-notes
+          }
