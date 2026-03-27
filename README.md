@@ -282,3 +282,15 @@ python run.py create-admin --username admin
 ```
 
 It updates the password hash for that username.
+
+## Internal author notes (hidden)
+
+This repo also ships with an internal author-only notes file to track design decisions and onboarding details that are not part of the public user documentation.
+
+- File: `./.author-notes.txt`
+- It is excluded from version control via `.gitignore`.
+- It is for original maintainer guidance only and should not be published in release docs.
+
+## License
+
+This project is licensed under the PolyForm Noncommercial License 1.0.0. See the [LICENSE](LICENSE) file for details.

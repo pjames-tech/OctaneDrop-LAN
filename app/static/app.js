@@ -9,6 +9,7 @@
   const uploadButton = uploadForm?.querySelector('button[type="submit"]');
   const liveStatus = document.getElementById('live-status');
   const liveDot = document.getElementById('live-dot');
+  const toastStack = document.getElementById('toast-stack');
 
   let liveSignature = filesCard?.dataset.filesSignature || '';
   let uploadPending = false;
@@ -17,6 +18,47 @@
   let reconnectTimer = null;
   let reconnectAttempt = 0;
   let pingTimer = null;
+
+  function showToast(message, kind = 'success', durationMs = 2600) {
+    if (!toastStack || !message) {
+      return;
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${kind}`;
+    toast.role = 'status';
+    toast.textContent = message;
+    toastStack.appendChild(toast);
+
+    // Trigger transition after insertion.
+    window.requestAnimationFrame(() => {
+      toast.classList.add('is-visible');
+    });
+
+    window.setTimeout(() => {
+      toast.classList.remove('is-visible');
+      toast.classList.add('is-leaving');
+      window.setTimeout(() => toast.remove(), 260);
+    }, durationMs);
+  }
+
+  function hydrateInitialToast() {
+    if (!toastStack) {
+      return;
+    }
+    const initialToast = toastStack.querySelector('.initial-toast');
+    if (!initialToast) {
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      initialToast.classList.add('is-visible');
+    });
+    window.setTimeout(() => {
+      initialToast.classList.remove('is-visible');
+      initialToast.classList.add('is-leaving');
+      window.setTimeout(() => initialToast.remove(), 260);
+    }, 2600);
+  }
 
   function describeFiles(fileList) {
     if (!fileList || !fileList.length) {
@@ -273,9 +315,11 @@
       }
 
       await copyToClipboard(payload.url);
+      const successMessage = `Copied a ${Math.round(payload.expires_in_seconds / 60)} minute link for ${payload.filename}.`;
       if (copyFeedback) {
-        copyFeedback.textContent = `Copied a ${Math.round(payload.expires_in_seconds / 60)} minute link for ${payload.filename}.`;
+        copyFeedback.textContent = successMessage;
       }
+      showToast(successMessage, 'success', 2200);
       button.textContent = 'Copied';
       window.setTimeout(() => {
         button.textContent = originalLabel;
@@ -283,13 +327,17 @@
       }, 1200);
       return;
     } catch (error) {
+      const errorMessage = error.message || 'Could not copy the share link.';
       if (copyFeedback) {
-        copyFeedback.textContent = error.message || 'Could not copy the share link.';
+        copyFeedback.textContent = errorMessage;
       }
+      showToast(errorMessage, 'error', 3000);
       button.textContent = originalLabel;
       button.disabled = false;
     }
   }
+
+  hydrateInitialToast();
 
   if (filesCard) {
     connectLiveUpdates();
@@ -319,6 +367,14 @@
     form.addEventListener('submit', event => {
       const fileName = form.dataset.fileName || 'this file';
       if (!window.confirm(`Delete ${fileName}?`)) {
+        event.preventDefault();
+      }
+    });
+  });
+
+  document.querySelectorAll('.logout-confirm-form').forEach(form => {
+    form.addEventListener('submit', event => {
+      if (!window.confirm('Are you sure you want to log out?')) {
         event.preventDefault();
       }
     });

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ app_name }}</title>
     <meta name="theme-color" content="#ff7300" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" />
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', path='/favicon.svg') }}?v={{ static_version }}" />
     <link rel="icon" type="image/png" href="{{ url_for('static', path='/favicon.png') }}?v={{ static_version }}" sizes="256x256" />
     <link rel="apple-touch-icon" href="{{ url_for('static', path='/favicon.png') }}?v={{ static_version }}" />
@@ -37,12 +40,20 @@
           </div>
         </div>
 
+        {% if current_user %}
+        <form method="post" action="/logout" class="mobile-logout-form logout-confirm-form" onsubmit="return confirm('Are you sure you want to log out?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+          <button class="mobile-logout-button" type="submit" aria-label="Sign out">
+            <svg class="mobile-menu-glyph" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+              <path d="M9 7V5a2 2 0 012-2h7a2 2 0 012 2v14a2 2 0 01-2 2h-7a2 2 0 01-2-2v-2M14 12H3m0 0l3-3m-3 3l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </form>
+        {% endif %}
+
         <div class="topbar-actions">
-          {% if tls_enabled and tls_ca_download_url %}
-          <a class="ghost-button compact-button" href="{{ tls_ca_download_url }}">Download LAN cert</a>
-          {% endif %}
           {% if current_user %}
-          <form method="post" action="/logout">
+          <form method="post" action="/logout" class="logout-confirm-form" onsubmit="return confirm('Are you sure you want to log out?')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
             <button class="ghost-button compact-button" type="submit">Sign out</button>
           </form>
@@ -50,9 +61,11 @@
         </div>
       </header>
 
-      {% if flash %}
-      <div class="flash flash-{{ flash.kind }}">{{ flash.text }}</div>
-      {% endif %}
+      <div id="toast-stack" class="toast-stack" aria-live="polite" aria-atomic="false">
+        {% if flash %}
+        <div role="status" class="toast toast-{{ flash.kind }} initial-toast">{{ flash.text }}</div>
+        {% endif %}
+      </div>
 
       <main>
         {% block content %}{% endblock %}

@@ -1,248 +1,224 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="hero-grid hero-grid-modern">
-  <article class="card hero-card hero-card-primary">
-    <div class="eyebrow-row">
-      <p class="eyebrow">Private Wi‑Fi workspace</p>
-      {% if tls_enabled %}
-      <span class="glass-chip glass-chip-success">Trusted transport ready</span>
-      {% else %}
-      <span class="glass-chip glass-chip-warning">HTTP only</span>
+<div class="dashboard-layout dashboard-layout-refined">
+  <aside class="dashboard-sidebar">
+    <div class="card sidebar-card sidebar-address">
+      <p class="eyebrow">Access URL</p>
+      <p class="muted small">Open this from any device on the same Wi-Fi network.</p>
+      <code class="address-link dashboard-address">{{ lan_url }}</code>
+    </div>
+
+    <div class="card sidebar-card sidebar-network">
+      <div class="stack-head">
+        <p class="eyebrow">Network Envelope</p>
+        <p class="muted small">{{ allowed_subnets | length }} subnet{{ '' if allowed_subnets | length == 1 else 's' }} allowed</p>
+      </div>
+      <div class="network-pill-grid">
+        {% for subnet in allowed_subnets %}
+        <span class="pill subnet-pill">{{ subnet }}</span>
+        {% endfor %}
+      </div>
+      {% if primary_lan_ip %}
+      <div class="sidebar-footnote">
+        <span>Primary LAN IP</span>
+        <strong>{{ primary_lan_ip }}</strong>
+      </div>
       {% endif %}
     </div>
-    <h1>Share massive files across this Wi‑Fi with a cleaner, faster dashboard.</h1>
-    <p class="hero-copy muted">
-      Open <strong>{{ lan_url }}</strong> on phones, tablets, or laptops connected to the same network.
-      Files stay encrypted on disk, the dashboard updates instantly over WebSockets, and temporary share links expire automatically.
-    </p>
 
-    <div class="address-card">
-      <span class="small muted">LAN address</span>
-      <code class="address-link">{{ lan_url }}</code>
-    </div>
-
-    <div class="metric-grid">
-      <div class="metric-card">
-        <span class="metric-label">Per-file cap</span>
-        <strong>{{ max_upload_label }}</strong>
-        <span class="metric-detail">Streamed in encrypted chunks</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-label">Share links</span>
-        <strong>{{ share_token_ttl_minutes }} min</strong>
-        <span class="metric-detail">Signed temporary URLs</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-label">Visibility</span>
-        <strong>LAN only</strong>
-        <span class="metric-detail">Restricted to your private subnets</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-label">Live sync</span>
-        <strong>WebSockets</strong>
-        <span class="metric-detail">Other tabs refresh instantly</span>
+    <div class="card sidebar-card sidebar-settings">
+      <p class="eyebrow">Share Policy</p>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="meta-label">File limit</span>
+          <strong>{{ max_upload_label }}</strong>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Link expires</span>
+          <strong>{{ share_token_ttl_minutes }} min</strong>
+        </div>
       </div>
     </div>
 
-    {% if tls_enabled %}
-    <div class="callout info compact-callout">
-      <strong>HTTPS is active.</strong>
-      <p>
-        {% if tls_trusted_on_host %}
-        This host should trust the local certificate automatically.
+    <div class="card sidebar-card sidebar-security">
+      <p class="eyebrow">Transport</p>
+      <div class="status-wrap">
+        {% if tls_enabled %}
+        <span class="status-chip status-chip-success">HTTPS Active</span>
         {% else %}
-        This host is using a private local certificate.
+        <span class="status-chip status-chip-warning">HTTP Only</span>
         {% endif %}
-        {% if tls_ca_download_url %}
-        Other devices can install it once from
-        <a class="inline-link" href="{{ tls_ca_download_url }}">{{ tls_ca_download_url }}</a>.
-        {% endif %}
-      </p>
-    </div>
-    {% else %}
-    <div class="callout warning compact-callout">
-      <strong>Transport encryption is off.</strong>
-      <p>Browsers will keep warning until you run the share over HTTPS.</p>
-    </div>
-    {% endif %}
-  </article>
-
-  <article class="card side-surface">
-    <div class="panel-header">
-      <div>
-        <p class="eyebrow">Detected network</p>
-        <h2>Allowed subnets</h2>
       </div>
-      <span class="status-chip status-chip-neutral">{{ allowed_subnets | length }} active</span>
+      {% if tls_enabled and tls_ca_download_url %}
+      <a class="ghost-button compact-button" href="{{ tls_ca_download_url }}">Download LAN cert</a>
+      {% endif %}
     </div>
 
-    <div class="network-list">
-      {% for subnet in allowed_subnets %}
-      <span class="pill subnet-pill">{{ subnet }}</span>
-      {% endfor %}
-    </div>
+  </aside>
 
-    <div class="status-list">
-      <div class="status-row">
-        <span class="status-dot status-dot-theme"></span>
-        <div>
-          <strong>Primary LAN IP</strong>
-          <p class="muted small">{{ primary_lan_ip or 'Auto-detected at runtime' }}</p>
-        </div>
+  <main class="dashboard-main">
+    <article class="card command-center">
+      <div class="command-center-copy">
+        <p class="eyebrow">Control Center</p>
+        <h2>{{ files | length }} file{{ '' if files | length == 1 else 's' }} ready for your LAN</h2>
+        <p class="muted">Upload quickly, generate temporary share links, and keep every open dashboard synchronized in real time.</p>
       </div>
-      <div class="status-row">
-        <span class="status-dot status-dot-success"></span>
-        <div>
-          <strong>Encrypted storage</strong>
-          <p class="muted small">AES-GCM at rest with chunked streaming on upload and download.</p>
-        </div>
+      <div class="command-center-badges">
+        <span class="glass-chip">Encrypted storage</span>
+        <span class="glass-chip">Live refresh</span>
+        <span class="glass-chip">Subnet restricted</span>
       </div>
-      <div class="status-row">
-        <span class="status-dot status-dot-warning"></span>
-        <div>
-          <strong>Session safety</strong>
-          <p class="muted small">Login protection, rate limits, CSRF protection, and expiring share tokens.</p>
-        </div>
-      </div>
-    </div>
-  </article>
-</section>
+    </article>
 
-<section class="grid-two upload-grid-modern">
-  <article class="card upload-card-modern">
-    <div class="panel-header panel-header-tight">
-      <div>
+    <article class="card upload-panel">
+      <div class="panel-intro">
         <p class="eyebrow">Upload</p>
-        <h2>Drag, drop, and push live</h2>
+        <h2>Drop files to publish</h2>
       </div>
-      <span class="status-chip status-chip-neutral">{{ max_upload_label }} max</span>
-    </div>
 
-    <form method="post" action="/upload" enctype="multipart/form-data" class="stack-form" id="upload-form">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
-      <label for="file-input" class="dropzone modern-dropzone" id="dropzone">
-        <input id="file-input" type="file" name="files" multiple required />
-        <div class="dropzone-visual">
-          <img
-            class="dropzone-logo"
-            src="{{ url_for('static', path='/logo-mark.svg') }}?v={{ static_version }}"
-            alt=""
-            width="52"
-            height="52"
-          />
-        </div>
-        <div>
-          <span class="dropzone-title">Drop files here</span>
-          <span class="muted">or click to browse from this device</span>
-        </div>
-      </label>
-      <div class="selected-files-row">
-        <div class="selected-files muted" id="selected-files">No files selected.</div>
-        <button type="button" class="ghost-button ghost-small hidden" id="clear-selection">Clear</button>
-      </div>
-      <div class="button-row">
-        <button type="submit" class="primary-button">Upload files</button>
-        <span class="muted small">Other connected clients update immediately when this finishes.</span>
-      </div>
-    </form>
-  </article>
-
-  <article class="card feature-card-modern">
-    <div class="panel-header panel-header-tight">
-      <div>
-        <p class="eyebrow">Built-in safety</p>
-        <h2>Designed for private file drops</h2>
-      </div>
-    </div>
-    <div class="feature-stack">
-      <div class="feature-item">
-        <strong>Encrypted on disk</strong>
-        <p class="muted small">Files are stored encrypted at rest and only decrypted during download streams.</p>
-      </div>
-      <div class="feature-item">
-        <strong>Short-lived sharing</strong>
-        <p class="muted small">The copy-link action creates a signed LAN URL that automatically expires.</p>
-      </div>
-      <div class="feature-item">
-        <strong>Modern transport</strong>
-        <p class="muted small">WebSockets keep open dashboards in sync without manual refresh.</p>
-      </div>
-      <div class="feature-item">
-        <strong>Local-network scoped</strong>
-        <p class="muted small">Traffic is accepted only from the server’s detected private subnets.</p>
-      </div>
-    </div>
-  </article>
-</section>
-
-<section class="card files-card files-card-modern" data-csrf-token="{{ csrf_token }}" data-share-endpoint-prefix="/api/files/" data-files-signature="{{ files_signature }}">
-  <div class="section-header section-header-modern">
-    <div>
-      <p class="eyebrow">Encrypted inventory</p>
-      <h2>Files</h2>
-      <p class="muted small">Stored encrypted on disk and refreshed instantly across open clients.</p>
-    </div>
-    <div class="header-actions">
-      <div class="status-chip status-chip-neutral">{{ files | length }} files</div>
-      <div class="live-pill"><span class="live-dot" id="live-dot" data-state="connecting"></span><span id="live-status" class="small muted">Connecting live updates…</span></div>
-      <div id="copy-feedback" class="copy-feedback muted">&nbsp;</div>
-    </div>
-  </div>
-
-  {% if files %}
-  <div class="table-wrap">
-    <table class="file-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Size</th>
-          <th>Uploaded</th>
-          <th>SHA‑256</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for file in files %}
-        <tr>
-          <td>
-            <div class="file-primary">
-              <span class="file-avatar">{{ file.original_name[:1] | upper }}</span>
+      <form method="post" action="/upload" enctype="multipart/form-data" class="stack-form" id="upload-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+        <label for="file-input" class="dropzone modern-dropzone dropzone-refined" id="dropzone">
+          <input id="file-input" type="file" name="files" multiple required />
+          <div class="dropzone-frame">
+            <div class="dropzone-center">
+              <div class="dropzone-visual dropzone-visual-refined">
+                <img
+                  class="dropzone-logo"
+                  src="{{ url_for('static', path='/logo-mark.svg') }}?v={{ static_version }}"
+                  alt=""
+                  width="52"
+                  height="52"
+                />
+              </div>
               <div>
-                <div class="file-name">{{ file.original_name }}</div>
-                <div class="muted small">Uploaded by {{ file.uploaded_by }}</div>
+                <span class="dropzone-title">Drop your files here!</span>
+                <span class="dropzone-subtitle">Up to {{ max_upload_label }} per file. Click anywhere to browse from this device.</span>
               </div>
             </div>
-          </td>
-          <td><span class="size-pill">{{ file.size_bytes | filesize }}</span></td>
-          <td><span class="time-pill">{{ file.uploaded_at }}</span></td>
-          <td><code class="hash">{{ file.sha256_hex[:18] }}…</code></td>
-          <td>
-            <div class="action-row">
-              <a class="secondary-button" href="/download/{{ file.id }}">Download</a>
-              <button class="secondary-button share-button" type="button" data-file-id="{{ file.id }}" data-filename="{{ file.original_name }}">Copy link</button>
-              <form method="post" action="/files/{{ file.id }}/delete" class="delete-form" data-file-name="{{ file.original_name }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
-                <button class="danger-button" type="submit">Delete</button>
-              </form>
+          </div>
+        </label>
+        <div class="selected-files-row">
+          <div class="selected-files muted" id="selected-files">No files selected.</div>
+          <button type="button" class="ghost-button ghost-small hidden" id="clear-selection">Clear</button>
+        </div>
+        <button type="submit" class="primary-button">Upload File(s)</button>
+      </form>
+    </article>
+
+    <article class="card files-card files-card-modern files-panel" data-csrf-token="{{ csrf_token }}" data-share-endpoint-prefix="/api/files/" data-files-signature="{{ files_signature }}">
+      <div class="section-header section-header-modern">
+        <div>
+          <p class="eyebrow">Files</p>
+          <h2>Shared File Index</h2>
+        </div>
+        <div class="header-actions">
+          <div class="live-pill"><span class="live-dot" id="live-dot" data-state="connecting"></span><span id="live-status" class="small muted">Connecting...</span></div>
+          <div id="copy-feedback" class="copy-feedback muted">&nbsp;</div>
+        </div>
+      </div>
+
+      {% if files %}
+      <div class="table-wrap file-table-desktop">
+        <table class="file-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Size</th>
+              <th>Uploaded</th>
+              <th>Hash</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for file in files %}
+            <tr>
+              <td>
+                <div class="file-primary">
+                  <span class="file-avatar">{{ file.original_name[:1] | upper }}</span>
+                  <div>
+                    <div class="file-name">{{ file.original_name }}</div>
+                    <div class="muted small">{{ file.uploaded_by }}</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="size-pill">{{ file.size_bytes | filesize }}</span></td>
+              <td><span class="time-pill">{{ file.uploaded_at }}</span></td>
+              <td><code class="hash">{{ file.sha256_hex[:16] }}...</code></td>
+              <td>
+                <div class="action-row">
+                  <a class="secondary-button" href="/download/{{ file.id }}">Download</a>
+                  <button class="secondary-button share-button" type="button" data-file-id="{{ file.id }}" data-filename="{{ file.original_name }}">Link</button>
+                  <form method="post" action="/files/{{ file.id }}/delete" class="delete-form" data-file-name="{{ file.original_name }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+                    <button class="danger-button" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="file-list-mobile">
+        {% for file in files %}
+        <article class="file-mobile-card">
+          <div class="file-primary">
+            <span class="file-avatar">{{ file.original_name[:1] | upper }}</span>
+            <div>
+              <div class="file-name">{{ file.original_name }}</div>
+              <div class="muted small">{{ file.uploaded_by }}</div>
             </div>
-          </td>
-        </tr>
+          </div>
+
+          <details class="file-mobile-details"{% if loop.first %} open{% endif %}>
+            <summary class="file-mobile-summary">
+              <span class="summary-label-collapsed">View details</span>
+              <span class="summary-label-expanded">Hide details</span>
+              <span class="summary-caret" aria-hidden="true"></span>
+            </summary>
+            <div class="file-mobile-meta">
+              <div class="file-mobile-meta-row">
+                <span class="file-mobile-label">Size</span>
+                <span class="file-mobile-value">{{ file.size_bytes | filesize }}</span>
+              </div>
+              <div class="file-mobile-meta-row">
+                <span class="file-mobile-label">Uploaded</span>
+                <span class="file-mobile-value">{{ file.uploaded_at }}</span>
+              </div>
+              <div class="file-mobile-meta-row">
+                <span class="file-mobile-label">Hash</span>
+                <code class="file-mobile-value file-mobile-hash">{{ file.sha256_hex[:16] }}...</code>
+              </div>
+            </div>
+          </details>
+
+          <div class="file-mobile-actions">
+            <a class="secondary-button" href="/download/{{ file.id }}">Download</a>
+            <button class="secondary-button share-button" type="button" data-file-id="{{ file.id }}" data-filename="{{ file.original_name }}">Link</button>
+            <form method="post" action="/files/{{ file.id }}/delete" class="delete-form" data-file-name="{{ file.original_name }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+              <button class="danger-button" type="submit">Delete</button>
+            </form>
+          </div>
+        </article>
         {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <div class="empty-state empty-state-modern">
-    <img
-      class="empty-logo"
-      src="{{ url_for('static', path='/logo-mark.svg') }}?v={{ static_version }}"
-      alt=""
-      width="64"
-      height="64"
-    />
-    <p class="empty-title">No files yet</p>
-    <p class="muted">Upload the first file to start sharing across your Wi‑Fi network.</p>
-  </div>
-  {% endif %}
-</section>
+      </div>
+      {% else %}
+      <div class="empty-state empty-state-modern">
+        <img
+          class="empty-logo"
+          src="{{ url_for('static', path='/logo-mark.svg') }}?v={{ static_version }}"
+          alt=""
+          width="64"
+          height="64"
+        />
+        <p class="empty-title">No files yet</p>
+        <p class="muted small">Upload your first file to start sharing.</p>
+      </div>
+      {% endif %}
+    </article>
+  </main>
+</div>
 {% endblock %}

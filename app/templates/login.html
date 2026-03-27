@@ -14,6 +14,20 @@
     <h1>Open your private LAN vault.</h1>
     <p class="hero-copy muted">Access this share from any device on the same Wi‑Fi by opening <strong>{{ lan_url }}</strong>.</p>
 
+    <form method="post" action="/login" class="stack-form login-form-modern login-form-priority">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+      <label>
+        <span>Username</span>
+        <input type="text" name="username" autocomplete="username" required />
+      </label>
+      <label>
+        <span>Password</span>
+        <input type="password" name="password" autocomplete="current-password" required />
+      </label>
+      <button type="submit" class="primary-button">Enter dashboard</button>
+    </form>
+
+    <div class="login-support-block">
     <div class="metric-grid auth-metric-grid">
       <div class="metric-card">
         <span class="metric-label">Scope</span>
@@ -46,19 +60,7 @@
       </p>
     </div>
     {% endif %}
-
-    <form method="post" action="/login" class="stack-form login-form-modern">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
-      <label>
-        <span>Username</span>
-        <input type="text" name="username" autocomplete="username" required />
-      </label>
-      <label>
-        <span>Password</span>
-        <input type="password" name="password" autocomplete="current-password" required />
-      </label>
-      <button type="submit" class="primary-button">Enter dashboard</button>
-    </form>
+    </div>
   </article>
 
   <article class="card side-card side-card-modern">

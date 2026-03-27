@@ -17,3 +17,6 @@ data/.session_secret
 data/.encryption_key
 
 data/.tls/
+
+# Internal author notes
+.author-notes.txt
